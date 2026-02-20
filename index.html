@@ -12,7 +12,7 @@
         <div class="container header-content">
             <h1 id="logo">StudTV <span class="brand-subtitle">by Sudhanshu</span></h1>
             <div class="search-bar">
-                <input type="text" id="search-input" placeholder="Titles, people, genres">
+                <input type="text" id="search-input" placeholder="Search titles, people...">
                 <button id="search-btn"><svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
             </div>
         </div>
@@ -22,7 +22,7 @@
         <!-- Hero content will be dynamically populated -->
         <div class="hero-content">
             <h1 class="hero-title" id="hero-title">Loading...</h1>
-            <p class="hero-overview" id="hero-overview">Loading popular movies...</p>
+            <p class="hero-overview" id="hero-overview">Loading library...</p>
             <div class="hero-actions">
                 <button id="hero-play-btn" class="btn btn-primary"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Play</button>
                 <button id="hero-info-btn" class="btn btn-secondary"><svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg> More Info</button>
@@ -44,8 +44,10 @@
     <main class="container main-content">
         <nav class="genre-nav">
              <ul id="genre-list">
-                <!-- Genres will be dynamically populated here -->
+                <!-- Genres will be dynamically populated here via JS -->
                 <li><a href="#" data-id="popular" class="active">Popular</a></li>
+                <li><a href="#" data-id="movie">Movies</a></li>
+                <li><a href="#" data-id="tv">TV Shows</a></li>
             </ul>
         </nav>
 
@@ -57,7 +59,7 @@
             <div id="pagination" class="pagination">
                 <button id="prev-page" disabled>Previous</button>
                 <span id="current-page">Page 1</span>
-                <button id="next-page" disabled>Next</button>
+                <button id="next-page">Next</button>
             </div>
         </section>
     </main>
