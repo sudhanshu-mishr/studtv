@@ -182,6 +182,11 @@ header.scrolled {
     background-color: rgba(109, 109, 110, 0.4);
 }
 
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
 /* Modal for Player */
 .modal {
     display: none;
@@ -238,10 +243,42 @@ header.scrolled {
     border: none;
 }
 
-#modal-movie-title {
+.modal-controls {
     margin-top: 20px;
-    font-size: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     color: #fff;
+}
+
+#modal-movie-title {
+    font-size: 1.5rem;
+    margin: 0 0 15px;
+}
+
+.tv-controls {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    background: rgba(255,255,255,0.1);
+    padding: 10px 20px;
+    border-radius: 8px;
+}
+
+.season-episode-select {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.season-episode-select input {
+    width: 50px;
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #333;
+    background: #222;
+    color: #fff;
+    text-align: center;
 }
 
 /* Content Area */
