@@ -58,6 +58,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModal = document.querySelector('.close-modal');
     const videoPlayer = document.getElementById('video-player');
     const modalTitle = document.getElementById('modal-movie-title');
+    const tvControls = document.getElementById('tv-controls');
+    const seasonInput = document.getElementById('season-input');
+    const episodeInput = document.getElementById('episode-input');
+    const loadEpisodeBtn = document.getElementById('load-episode-btn');
+    const nextEpisodeBtn = document.getElementById('next-episode-btn');
+
+    let currentPlayingId = null;
+    let currentPlayingTitle = null;
 
     closeModal.addEventListener('click', () => {
         modal.style.display = 'none';
@@ -68,6 +76,28 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === modal) {
             modal.style.display = 'none';
             videoPlayer.src = '';
+        }
+    });
+
+    // Manual TV Controls
+    loadEpisodeBtn.addEventListener('click', () => {
+        if (currentPlayingId) {
+            const season = parseInt(seasonInput.value) || 1;
+            const episode = parseInt(episodeInput.value) || 1;
+            updatePlayerSource(currentPlayingId, 'tv', season, episode, currentPlayingTitle);
+        }
+    });
+
+    nextEpisodeBtn.addEventListener('click', () => {
+        if (currentPlayingId) {
+            const currentEpisode = parseInt(episodeInput.value) || 1;
+            const nextEpisode = currentEpisode + 1;
+            const season = parseInt(seasonInput.value) || 1;
+
+            // Update input UI
+            episodeInput.value = nextEpisode;
+
+            updatePlayerSource(currentPlayingId, 'tv', season, nextEpisode, currentPlayingTitle);
         }
     });
 
@@ -336,6 +366,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Enhanced Player Integration ---
     function openPlayer(id, title, mediaType) {
         const modal = document.getElementById('player-modal');
+        const tvControls = document.getElementById('tv-controls');
+
+        currentPlayingId = id;
+        currentPlayingTitle = title;
+
+        // Reset Inputs for TV
+        if (mediaType === 'tv') {
+            tvControls.style.display = 'flex';
+
+            // Check saved progress for last episode
+            const lastSession = getSavedSession(id);
+            let season = 1;
+            let episode = 1;
+
+            if (lastSession) {
+                season = lastSession.season;
+                episode = lastSession.episode;
+                console.log(`Resuming ${title} at S${season}E${episode}`);
+            }
+
+            document.getElementById('season-input').value = season;
+            document.getElementById('episode-input').value = episode;
+
+            updatePlayerSource(id, 'tv', season, episode, title);
+        } else {
+            tvControls.style.display = 'none';
+            updatePlayerSource(id, 'movie', null, null, title);
+        }
+
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
+
+    function updatePlayerSource(id, mediaType, season, episode, title) {
         const videoPlayer = document.getElementById('video-player');
         const modalTitle = document.getElementById('modal-movie-title');
 
@@ -344,23 +409,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Base URL based on Media Type
         if (mediaType === 'tv') {
-            // Default to S1E1
-            url = `https://www.vidking.net/embed/tv/${id}/1/1`;
+            url = `https://www.vidking.net/embed/tv/${id}/${season}/${episode}`;
             // TV Specific Params
             params.push('nextEpisode=true');
             params.push('episodeSelector=true');
+
+            if (modalTitle) modalTitle.textContent = `${title} - S${season}:E${episode}`;
+
+            // Save Session (Current Episode)
+            saveSession(id, season, episode);
+
         } else {
             url = `https://www.vidking.net/embed/movie/${id}`;
+            if (modalTitle) modalTitle.textContent = title;
         }
 
         // Global Params
         params.push('color=e50914'); // Netflix Red
         params.push('autoPlay=true'); // Autoplay since we clicked Play
 
-        // Check for Saved Progress
-        const savedProgress = getSavedProgress(id);
+        // Check for Saved Progress (Time)
+        // Note: Progress ID should probably differ for TV episodes (e.g. id_s1_e1), but simple ID works for movie
+        // For TV, VidKing might handle internal progress per episode via localStorage on their domain,
+        // but if we want to resume *time* on our side, we need unique keys.
+        // Let's stick to simple ID for now or compound key.
+        const progressKey = mediaType === 'tv' ? `${id}_S${season}_E${episode}` : id;
+        const savedProgress = getSavedProgress(progressKey);
+
         if (savedProgress) {
-            console.log(`Resuming ${title} at ${savedProgress} seconds`);
             params.push(`progress=${Math.floor(savedProgress)}`);
         }
 
@@ -372,56 +448,61 @@ document.addEventListener('DOMContentLoaded', () => {
         if (videoPlayer) {
             videoPlayer.src = url;
         }
-
-        if (modalTitle) modalTitle.textContent = title;
-
-        if (modal) {
-            modal.style.display = 'flex';
-        }
     }
 
     // --- Progress Tracking ---
 
-    // Save progress to LocalStorage
-    function saveProgress(id, currentTime) {
-        const key = `watch_progress_${id}`;
+    function saveProgress(keyId, currentTime) {
+        const key = `watch_progress_${keyId}`;
         localStorage.setItem(key, currentTime);
     }
 
-    // Retrieve progress
-    function getSavedProgress(id) {
-        const key = `watch_progress_${id}`;
+    function getSavedProgress(keyId) {
+        const key = `watch_progress_${keyId}`;
         const saved = localStorage.getItem(key);
         return saved ? parseFloat(saved) : null;
+    }
+
+    function saveSession(id, season, episode) {
+        const key = `watch_session_${id}`;
+        const session = { season, episode, timestamp: Date.now() };
+        localStorage.setItem(key, JSON.stringify(session));
+    }
+
+    function getSavedSession(id) {
+        const key = `watch_session_${id}`;
+        const saved = localStorage.getItem(key);
+        return saved ? JSON.parse(saved) : null;
     }
 
     // Listen for Player Events
     window.addEventListener("message", function (event) {
         try {
-            // Parse data if string, or use directly if object (depending on implementation)
             let data = event.data;
             if (typeof data === "string") {
                 try {
                     data = JSON.parse(data);
                 } catch (e) {
-                    // Not JSON, ignore
                     return;
                 }
             }
 
-            // Check if it's a Player Event
             if (data && data.type === "PLAYER_EVENT" && data.data) {
                 const eventData = data.data;
                 const eventType = eventData.event;
 
-                // Log for debugging
-                // console.log("Player Event:", eventType, eventData);
-
                 if (eventType === "timeupdate" || eventType === "pause" || eventType === "ended") {
-                    // Save progress
-                    // Use 'id' from event if consistent with our ID, otherwise rely on context if needed
-                    // Usually ID matches TMDB ID if passed correctly.
-                    if (eventData.id && eventData.currentTime) {
+                    // If TV, we need to know which episode to save progress for.
+                    // The eventData might contain season/episode if VidKing sends it (documented in prompt).
+                    // Prompt said: id, season, episode are sent.
+
+                    if (eventData.mediaType === 'tv' && eventData.season && eventData.episode) {
+                         const compoundId = `${eventData.id}_S${eventData.season}_E${eventData.episode}`;
+                         if (eventData.currentTime) saveProgress(compoundId, eventData.currentTime);
+
+                         // Also update session just in case they seeked/changed ep inside player
+                         saveSession(eventData.id, eventData.season, eventData.episode);
+                    } else if (eventData.id && eventData.currentTime) {
                          saveProgress(eventData.id, eventData.currentTime);
                     }
                 }

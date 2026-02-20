@@ -37,7 +37,19 @@
             <div class="video-container">
                 <iframe id="video-player" src="" frameborder="0" allowfullscreen></iframe>
             </div>
-            <h2 id="modal-movie-title">Now Playing</h2>
+
+            <div class="modal-controls">
+                <h2 id="modal-movie-title">Now Playing</h2>
+
+                <div id="tv-controls" class="tv-controls" style="display: none;">
+                    <div class="season-episode-select">
+                        <label>Season: <input type="number" id="season-input" min="1" value="1"></label>
+                        <label>Episode: <input type="number" id="episode-input" min="1" value="1"></label>
+                        <button id="load-episode-btn" class="btn btn-sm">Go</button>
+                    </div>
+                    <button id="next-episode-btn" class="btn btn-sm btn-primary">Next Episode &rarr;</button>
+                </div>
+            </div>
         </div>
     </div>
 
