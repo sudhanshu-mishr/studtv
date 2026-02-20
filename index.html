@@ -9,33 +9,49 @@
 <body>
 
     <header>
-        <div class="container">
+        <div class="container header-content">
             <h1>MovieStream</h1>
-            <nav>
-                <ul>
-                    <li><a href="#">Home</a></li>
-                    <li><a href="#">Movies</a></li>
-                    <li><a href="#">Series</a></li>
-                </ul>
-            </nav>
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Search for movies...">
+                <button id="search-btn">Search</button>
+            </div>
+            <div class="api-key-container">
+                <input type="text" id="api-key-input" placeholder="Enter TMDB API Key">
+                <button id="save-api-key-btn">Save Key</button>
+            </div>
         </div>
     </header>
 
+    <nav class="genre-nav">
+        <div class="container">
+            <ul id="genre-list">
+                <!-- Genres will be dynamically populated here -->
+                <li><a href="#" data-id="popular" class="active">Popular</a></li>
+            </ul>
+        </div>
+    </nav>
+
     <main class="container">
-        <section class="player-section">
-            <h2 id="movie-title">Now Watching: Movie ID 1078605</h2>
+        <section class="player-section" id="player-section">
+            <h2 id="movie-title">Select a movie to watch</h2>
             <div class="video-container">
-                <iframe id="video-player" src="https://www.vidking.net/embed/movie/1078605" frameborder="0" allowfullscreen></iframe>
+                <iframe id="video-player" src="" frameborder="0" allowfullscreen></iframe>
+                <div id="player-placeholder" class="player-placeholder">
+                    <p>Select a movie from the list below to start watching</p>
+                </div>
             </div>
         </section>
 
-        <section class="controls-section">
-            <h3>Change Movie</h3>
-            <div class="input-group">
-                <input type="text" id="movie-id-input" placeholder="Enter TMDB Movie ID (e.g., 550)">
-                <button id="watch-btn">Watch</button>
+        <section class="movies-section">
+            <h2>Movies</h2>
+            <div id="movies-grid" class="movies-grid">
+                <!-- Movies will be dynamically populated here -->
             </div>
-            <p class="note">Enter a valid TMDB Movie ID to switch the player.</p>
+            <div id="pagination" class="pagination">
+                <button id="prev-page" disabled>Previous</button>
+                <span id="current-page">Page 1</span>
+                <button id="next-page">Next</button>
+            </div>
         </section>
     </main>
 
