@@ -333,18 +333,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Enhanced Player Integration ---
     function openPlayer(id, title, mediaType) {
         const modal = document.getElementById('player-modal');
         const videoPlayer = document.getElementById('video-player');
         const modalTitle = document.getElementById('modal-movie-title');
 
+        let url = '';
+        let params = [];
+
+        // Base URL based on Media Type
+        if (mediaType === 'tv') {
+            // Default to S1E1
+            url = `https://www.vidking.net/embed/tv/${id}/1/1`;
+            // TV Specific Params
+            params.push('nextEpisode=true');
+            params.push('episodeSelector=true');
+        } else {
+            url = `https://www.vidking.net/embed/movie/${id}`;
+        }
+
+        // Global Params
+        params.push('color=e50914'); // Netflix Red
+        params.push('autoPlay=true'); // Autoplay since we clicked Play
+
+        // Check for Saved Progress
+        const savedProgress = getSavedProgress(id);
+        if (savedProgress) {
+            console.log(`Resuming ${title} at ${savedProgress} seconds`);
+            params.push(`progress=${Math.floor(savedProgress)}`);
+        }
+
+        // Construct Final URL
+        if (params.length > 0) {
+            url += '?' + params.join('&');
+        }
+
         if (videoPlayer) {
-            if (mediaType === 'tv') {
-                // Default to Season 1 Episode 1 for TV shows
-                videoPlayer.src = `https://www.vidking.net/embed/tv/${id}/1/1`;
-            } else {
-                videoPlayer.src = `https://www.vidking.net/embed/movie/${id}`;
-            }
+            videoPlayer.src = url;
         }
 
         if (modalTitle) modalTitle.textContent = title;
@@ -353,4 +379,55 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.style.display = 'flex';
         }
     }
+
+    // --- Progress Tracking ---
+
+    // Save progress to LocalStorage
+    function saveProgress(id, currentTime) {
+        const key = `watch_progress_${id}`;
+        localStorage.setItem(key, currentTime);
+    }
+
+    // Retrieve progress
+    function getSavedProgress(id) {
+        const key = `watch_progress_${id}`;
+        const saved = localStorage.getItem(key);
+        return saved ? parseFloat(saved) : null;
+    }
+
+    // Listen for Player Events
+    window.addEventListener("message", function (event) {
+        try {
+            // Parse data if string, or use directly if object (depending on implementation)
+            let data = event.data;
+            if (typeof data === "string") {
+                try {
+                    data = JSON.parse(data);
+                } catch (e) {
+                    // Not JSON, ignore
+                    return;
+                }
+            }
+
+            // Check if it's a Player Event
+            if (data && data.type === "PLAYER_EVENT" && data.data) {
+                const eventData = data.data;
+                const eventType = eventData.event;
+
+                // Log for debugging
+                // console.log("Player Event:", eventType, eventData);
+
+                if (eventType === "timeupdate" || eventType === "pause" || eventType === "ended") {
+                    // Save progress
+                    // Use 'id' from event if consistent with our ID, otherwise rely on context if needed
+                    // Usually ID matches TMDB ID if passed correctly.
+                    if (eventData.id && eventData.currentTime) {
+                         saveProgress(eventData.id, eventData.currentTime);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Error processing player message:", error);
+        }
+    });
 });
