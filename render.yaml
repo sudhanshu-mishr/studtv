@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: movie-stream
+    env: static
+    buildCommand: echo "Skipping build for static site"
+    staticPublishPath: .

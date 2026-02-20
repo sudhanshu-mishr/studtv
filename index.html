@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovieStream - Watch Movies Online</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <h1>MovieStream</h1>
+            <nav>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Movies</a></li>
+                    <li><a href="#">Series</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="player-section">
+            <h2 id="movie-title">Now Watching: Movie ID 1078605</h2>
+            <div class="video-container">
+                <iframe id="video-player" src="https://www.vidking.net/embed/movie/1078605" frameborder="0" allowfullscreen></iframe>
+            </div>
+        </section>
+
+        <section class="controls-section">
+            <h3>Change Movie</h3>
+            <div class="input-group">
+                <input type="text" id="movie-id-input" placeholder="Enter TMDB Movie ID (e.g., 550)">
+                <button id="watch-btn">Watch</button>
+            </div>
+            <p class="note">Enter a valid TMDB Movie ID to switch the player.</p>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 MovieStream. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
