@@ -421,12 +421,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Filter by Search
             if (currentSearchQuery) {
                 const query = currentSearchQuery.toLowerCase().trim();
-                console.log("Searching for:", query);
                 movies = movies.filter(m => m.title.toLowerCase().includes(query));
-                console.log("Found:", movies.length);
             }
 
-            // Filter by Genre
+            // Filter by Genre (only if not searching)
             else if (currentGenre !== 'popular') {
                 movies = movies.filter(m => m.genre_ids && m.genre_ids.includes(parseInt(currentGenre)));
             }
@@ -436,32 +434,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Search functionality
-    if (searchBtn) {
-        searchBtn.addEventListener('click', () => {
-            const query = searchInput.value.trim();
-            console.log("Search button clicked. Query:", query);
-            if (query) {
+    // Live Search Functionality with Debounce
+    let searchTimeout;
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+
+            // Debounce for performance and UX
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
                 currentSearchQuery = query;
                 currentPage = 1;
                 fetchMovies();
-                document.querySelectorAll('.genre-nav a').forEach(el => el.classList.remove('active'));
 
-                // Update section title
-                const sectionTitle = document.getElementById('section-title');
-                if (sectionTitle) sectionTitle.textContent = `Search Results for "${query}"`;
-            }
+                // Update active state
+                if (query) {
+                    document.querySelectorAll('.genre-nav a').forEach(el => el.classList.remove('active'));
+                    const sectionTitle = document.getElementById('section-title');
+                    if (sectionTitle) sectionTitle.textContent = `Results for "${query}"`;
+                } else {
+                    // Revert to popular/genre view title if cleared
+                    const sectionTitle = document.getElementById('section-title');
+                    if (sectionTitle) sectionTitle.textContent = currentGenre === 'popular' ? 'Trending Now' : 'Movies';
+
+                    // Highlight current genre again
+                    const activeGenreLink = document.querySelector(`.genre-nav a[data-id="${currentGenre}"]`);
+                    if (activeGenreLink) activeGenreLink.classList.add('active');
+                }
+            }, 300); // 300ms delay
         });
-    }
 
-    if (searchInput) {
+        // Keep enter key working just in case
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                e.preventDefault(); // Prevent form submission if any
-                if (searchBtn) searchBtn.click();
+                e.preventDefault();
+                clearTimeout(searchTimeout); // Cancel pending input event
+                const query = searchInput.value.trim();
+                currentSearchQuery = query;
+                fetchMovies();
             }
         });
     }
+
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+             const query = searchInput.value.trim();
+             currentSearchQuery = query;
+             fetchMovies();
+        });
+    }
+
 
     // Pagination
     if (prevPageBtn) {
@@ -491,6 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderMovies(movies) {
         if (!moviesGrid) return;
 
+        // Simple fade out/in effect could be here, but direct replacement is faster for live search
         moviesGrid.innerHTML = '';
         if (!movies || movies.length === 0) {
             moviesGrid.innerHTML = '<p style="color: #fff; width: 100%;">No movies found matching your criteria.</p>';
@@ -500,6 +523,9 @@ document.addEventListener('DOMContentLoaded', () => {
         movies.forEach(movie => {
             const card = document.createElement('div');
             card.className = 'movie-card';
+            // Add fade-in animation class
+            card.style.animation = 'fadeIn 0.5s ease-out';
+
             card.addEventListener('click', () => openPlayer(movie.id, movie.title));
 
             let posterPath = 'https://via.placeholder.com/200x300?text=No+Image';
